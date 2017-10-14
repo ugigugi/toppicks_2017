@@ -53,10 +53,10 @@
 Ugljesa Milic$^{\mp\ddagger}$,
 Oreste Villa$^{\dagger}$,
 Evgeny Bolotin$^{\dagger}$,
-Akhil Arunkumar$^{\dagger\star}$,\\\\
+Akhil Arunkumar$^{\star}$,\\\\
 Eiman Ebrahimi$^{\dagger}$,
 Aamer Jaleel$^{\dagger}$,
-Alex Ramirez$^{\dagger\ast}$,
+Alex Ramirez$^{\ast}$,
 David Nellans$^{\dagger}$
 \\\\
 $^{\mp}$Universitat Polit\`ecnica de Catalinya (UPC), $^{\ddagger}$Barcelona Supercomputing Center (BSC), \\
@@ -68,22 +68,19 @@ $^{\dagger}$NVIDIA, $^{\star}$Arizona State University, and $^{\ast}$Google\\
 \maketitle
 \pagestyle{plain}
 
-\textbf{Summary.} With Moore's law limiting the transister growth of 
-next-generation GPU accelerators, system architects must
+\textbf{Summary.} With Moore's law limiting the transistor growth, system architects must
 embrace multi-socket designs in order to significantly increase the core count and memory 
 bandwidth of future GPUs. However, maintaining the expected uniform memory 
-system performance (of a single-GPU) in multi-GPU systems without significant 
+system performance (of a single GPU) without significant 
 application re-factoring is a major impediment to the adoption of multi-socket GPU
-systems. As a result, we believe that within the next 10 
-years GPU vendors will be forced to adopt programmer transparent runtimes that 
-aggregate multiple physically discrete GPUs to form a single large virtual 
-GPU, while also attempting to minimize the NUMA effects inherent in these designs.
+systems. As a result, we believe that in the following years, GPU vendors will be forced to adopt programmer transparent runtimes that 
+aggregate multiple physically discrete GPUs forming a single large virtual 
+GPU, while attempting to minimize the NUMA effects inherent in these designs.
 
-In this work we investigate the impact that NUMA effects will have on 
+In this work, we investigate the impact that NUMA design will have on 
 transparent multi-GPU systems and show that several changes are needed to 
 both the GPU interconnect and cache architectures to achieve good performance 
-scalability. We show that application phase effects can be exploited, allowing 
-individual GPU sockets to dynamically optimize their individual interconnect and cache 
+scalability. We show that application phase effects can be exploited, allowing GPU sockets to dynamically optimize their individual interconnect and cache 
 policies, minimizing the impact of NUMA effects. Our programmer transparent NUMA-aware 
 GPU\footnote{\textbf{Original version appears in MICRO 2017:} \\ Ugljesa Milic, 
 Oreste Villa, Evgeny Bolotin, Akhil Arunkumar, Eiman Ebrahimi, Aamer Jaleel, 
@@ -107,9 +104,9 @@ support explicit programming of two or more GPUs, but it is challenging to
 manage multiple GPUs and requires significant modification to single 
 GPU optimized codebases.  At the same time, GPUs are expanding beyond the traditional 
 PCIe peripheral interface to enable more efficient interconnection protocols 
-between both GPUs and CPUs and GPUs and GPUs. Future high bandwidth GPU-to-GPU interconnects, 
+between both GPUs and CPUs. Future high bandwidth GPU-to-GPU interconnects, 
 possibly using improved communication protocols, will lead to system designs 
-with closely coupled groups of GPUs that can efficiently share memory at fine 
+with closely coupled sets of GPUs that can efficiently share memory at fine 
 granularity.
 
 \begin{figure}[t]
@@ -117,10 +114,17 @@ granularity.
 	\includegraphics[width=1.0\columnwidth]{figures/inter_gpu_connections.pdf}
 	\caption{The evolution of GPUs from traditional discrete PCIe devices to 
 		single logical, multi-socket accelerators.}
-	\vspace{-0.25in}
+	%\vspace{-0.25in}
 	\label{fig:systemdiagram}
 \end{figure}
 
+\begin{figure*}[!t]
+	\centering
+	\includegraphics[width=1.0\textwidth]{figures/plot_final_speedup_WB_nvlink_first.pdf}
+	\caption{Final NUMA-aware GPU performance compared to a single GPU and 4$\times$ larger single GPU with scaled resources.}
+	%\vspace{-0.225in}
+	\label{fig:combined}
+\end{figure*}
 The onset of these multi-socket GPU systems will provide a pivot point for GPU 
 and system vendors. On one hand, vendors can continue to expose GPUs as 
 individual resources and force developers to use multiple programming paradigms 
@@ -129,18 +133,9 @@ a single programmer transparent NUMA-GPU resource as shown in
 Figure~\ref{fig:systemdiagram}.  By extending the single GPU programming model 
 to multi-socket GPUs, applications can scale beyond the constraints of Moore's 
 law, while simultaneously retaining the programming interface which GPU 
-developers have become accustomed.  Extracting significant performance 
-scalability while maintaining existing programming interfaces is a desireable 
+developers have become accustomed. Extracting performance 
+scalability while maintaining existing programming interfaces is a desirable 
 combination and will see widespread adoption by end-users.
-
-\begin{figure*}[!t]
-	\centering
-	\includegraphics[width=1.0\textwidth]{figures/plot_final_speedup_WB_nvlink_first.pdf}
-	\caption{Final NUMA-aware GPU performance compared to a single GPU and 4$\times$ 
-	larger single GPU with scaled resources.}
-	\vspace{-0.225in}
-	\label{fig:combined}
-\end{figure*}
 
 Researchers have previously examined aggregating multiple GPUs together under a single 
 programming model~\cite{lee2013transparent,Cabezas2015}; however this work was 
@@ -154,17 +149,17 @@ designs, scalable transparent multi-GPU performance is now achievable if GPU
 architectures become NUMA-aware.
 
 \vspace{-.05in}
-\section{NUMA-aware GPU Designs}
+\section{NUMA-aware GPU Design}
 
 Our work shows that NUMA bandwidth (not latency) between GPUs is the primary
-performance limitation in a transparent multi-GPU system and we provide two orthoginal
+performance limitation in a transparent multi-GPU system and we provide two orthogonal
 architectural optimizations to overcome this challenge.
 
 \textbf{Dynamically Reconfigurable Interconnects:} In NUMA-GPU systems, we 
 observe that applications have different utilization of egress and ingress 
-channels on both a per GPU-socket basis and during different execution phases. 
-To increase NUMA-bandwidth, we propose to dynamically rebalance multi-lane link assignments on a
-per-GPU basis. We suggest replacing unidirectional lanes with bi-directional 
+channels on a per GPU-socket basis and during different execution phases. 
+To increase NUMA-bandwidth, we propose to dynamically rebalance multi-lane link assignments. 
+We suggest replacing unidirectional lanes with bi-directional 
 lanes that can be turned around on demand. During kernel 
 execution the link load balancer then periodically samples the BW saturation of each 
 link. If the lanes in one direction are underutilized, while the lanes in the 
@@ -200,7 +195,7 @@ and theoretical performance that NUMA-aware GPU architectures can achieve.
 We observe that our proposed optimizations are largely complimentary and help maximize 
 performance across a wide range of workloads. When 
 combined, our NUMA-aware multi-socket GPU achieves 2.1$\times$ improvement over a 
-single GPU and 80\% improvement over a 4 socket multi-GPU without NUMA-awareness.
+single GPU and 80\% improvement over a 4-socket multi-GPU without NUMA-awareness.
 
 NUMA-Aware transparent multi-GPU technology may be most interesting because 
 \textit{it allows users to scale performance by simply plugging in additional 
@@ -215,12 +210,12 @@ our design is able to largely eliminate the NUMA penalty in future multi-socket
 GPU designs, though further improvements are possible.
 
 \vspace{-.05in}
-\section{Long Term Impact} Over the last decade single GPU performance has 
+\section{Long Term Impact} Over the last decade, single GPU performance has 
 scaled thanks to a significant growth in per-GPU transistor count and DRAM 
 bandwidth. Unfortunately, transistor density is slowing significantly and 
 integrated circuit manufacturers are not providing roadmaps beyond \SI{7}{nm}.
 Porting applications to multi-GPU programming models is difficult and presents
-a significant barrier to adoption for many GPU-compute users.  This work provides
+a significant barrier to adoption for many GPU-compute users. This work provides
 the blueprint for an easily achievable way to enable unmodified workload performance
 scaling from one to as many as eight GPUs.
 Today, multi-GPU compute nodes are already available, e.g.\@ NVIDIA's DGX-1 
@@ -230,32 +225,32 @@ within a compute
 node. Our NUMA-aware transparent multi-GPU design allows the code of \textit{all} GPU accelerated 
 workloads to immediately strong-scale on multiple GPUs.\@
 
-For decades, the promise of parallel code has been performance scalability. 
+For years, the promise of parallel code has been performance scalability. 
 This has been realized on single GPUs, but today that promise does not hold on 
 well on multiple GPUs, because crossing the socket boundary with efficient memory referencing 
-was not well handled. By combining dynamic page placement into memory at 
+was not well handled. With dynamic page placement into memory at 
 runtime~\cite{UVM} and interconnects with cache line granularity~\cite{NVLINK}, 
 our proposal enables transparent access to remote memory without the need to 
 modify application source code, extending the promise of parallel programming across
 the socket boundary.  While other techniques are being proposed to improve the transistor
 count of single GPUs, such as multi-chip-modules GPUs~\cite{Arunkumar2017}, those
 approaches do not have the same level of scalability as a transparent multi-GPU
-system which can scale to 4,8, or 16 times larger than today's biggest GPUs (if
+system which can scale to 4, 8, or 16 times larger than today's biggest GPUs (if
 the NUMA overheads can be overcome or hidden through microarchitectural improvements).
-At the limit, future GPU-centric compute nodes are likely to be comprised of multiple-sockets
+At the limit, future GPU-centric compute nodes are likely to be comprised of multiple sockets
 of multi-chip-module GPUs that have been made NUMA-aware at the architectural level, achieving
-the best of both on-package and off-package scalability.  Performance
-improvements that are 2-8 times beyond current GPUs will not be achieved through traditional
-architectural improvements, full system system architectures such as multi-GPU systems, is 
+the best of both on-package and off-package scalability. Performance
+improvements that are 2--8 times beyond current GPUs will not be achieved through traditional
+architectural improvements, full system architectures such as multi-GPU systems, is 
 where significant gains will be sourced.
 
 We believe this work will be impactful both within the field of computer architecture, but 
-more importantly, outside the field of computer architecture.  Within our 
+more importantly, outside the field of computer architecture. Within our 
 specialty, transparent multi-socket GPU execution will enable a wave of research 
 similar to the 25 year (and on going) trend of multi-socket CPU 
 research. While similar concepts are likely to be re-applied within the GPU domain, 
 the NUMA bottleneck for GPUs is not a discrepancy between local and remote 
-memory access latency but instead bandwidth;  instead of exploiting instruction 
+memory access latency, but bandwidth. Instead of exploiting instruction 
 level parallelism to hide the memory wall, it must now be done using energy-efficient 
 data and thread level parallelism, while considering locality as a first class principle. 
 There are many challenging problems and 
@@ -263,23 +258,25 @@ open questions (thread block scheduling, dynamic page migration and replication,
 prefetching policies, making other parts of GPU architecture NUMA-aware, etc.\@) 
 that need to be studied by a research community willing to address them.
 
-Outside our field,  GPUs are the preeminant compute acceleration technique used in
+Outside our field,  GPUs are the preeminent compute acceleration technique used in
 machine learning, computer vision, and autonomous robotics.  The algorithms
 used in these fields iterate at such a rapid pace, that deep learning frameworks (for example)
 have little time to heavily optimize for a single piece, or even generation, of GPU hardware;
 before new techniques are invented.  This means that many machine learning frameworks
 are not yet multi-GPU capable, despite the best efforts of GPU vendors. NUMA-aware
 transparent multi-GPUs can provide a immediate shot in the arm to ML researchers
-across the globe by providing a 2-8$\times$ improvement in both GPU memory capacity and
-throughput, while requiring no modification to these rapidly iterating code-bases.
+across the globe by providing a 2--8$\times$ improvement in both GPU memory capacity and
+throughput, while requiring no modification to these rapidly iterating applications.
 We believe no technique proposed in the architecture community today has the same potential
 for performance upside, with such little overhead to the programmer, and is realizable on
-such a short timeline. \textbf{Citation:} \textit{In 2017 Milic et al. provided a blueprint for NUMA-Aware
+such a short timeline. 
+
+\textbf{Citation:} \textit{In 2017, Milic et al. provided a blueprint for NUMA-aware
 multi-socket GPUs and demonstrated that thanks to their inherently parallel design both at
-the language and architectural level, unmodified GPU applications can see 2-8$\times$ improvements 
+the language and architectural level, unmodified GPU applications can see 2--8$\times$ improvements 
 in performance simply by increasing the number of GPUs within the system.}
 
 \bibliographystyle{IEEEtran}
-\vspace{-0.1in}
+%\vspace{-0.1in}
 \bibliography{main}
 \end{document}
